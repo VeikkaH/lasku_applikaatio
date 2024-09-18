@@ -9,21 +9,27 @@ class CalculatePage extends StatefulWidget {
 }
 
 class _CalculatePageState extends State<CalculatePage> {
-   final controller1 = TextEditingController();
+  final _lengthcontroller = TextEditingController();
 
-  final controller2 = TextEditingController();
+  final _widthcontroller = TextEditingController();
 
-  final controller3 = TextEditingController();
+  final _depthcontroller = TextEditingController();
 
   String _product = '';
+  String _unit = '';
+  bool _unitMeasurementBool = true;  //true = cm, false = m;
 
   void calculateProduct() {
-    if (controller1.text.isNotEmpty &&
-        controller2.text.isNotEmpty &&
-        controller3.text.isNotEmpty) {
-      final product = double.parse(controller1.text) *
-          double.parse(controller2.text) *
-          double.parse(controller3.text);
+    if (_lengthcontroller.text.isNotEmpty &&
+        _widthcontroller.text.isNotEmpty &&
+        _depthcontroller.text.isNotEmpty) {
+      double product = double.parse(_lengthcontroller.text) *
+          double.parse(_widthcontroller.text) *
+          double.parse(_depthcontroller.text);
+
+    if (_unitMeasurementBool == false) {
+        product = product / 1000000;
+      }
       setState(() {
         _product = '$product';
       });
@@ -43,10 +49,10 @@ class _CalculatePageState extends State<CalculatePage> {
               SizedBox(
                 width: 250,
                 child: TextField(
-                 controller: controller1,
+                 controller: _lengthcontroller,
                  decoration: InputDecoration(
                  border: OutlineInputBorder(),
-                 labelText: 'Pituus',
+                 labelText: 'Pituus cm',
                  )
                 )
               ),
@@ -54,10 +60,10 @@ class _CalculatePageState extends State<CalculatePage> {
               SizedBox(
                 width: 250,
                 child: TextField(
-                 controller: controller2,
+                 controller: _widthcontroller,
                  decoration: InputDecoration(
                  border: OutlineInputBorder(),
-                 labelText: 'Leveys',
+                 labelText: 'Leveys cm',
                  )
                 )
               ),
@@ -65,10 +71,10 @@ class _CalculatePageState extends State<CalculatePage> {
               SizedBox(
                 width: 250,
                 child: TextField(
-                 controller: controller3,
+                 controller: _depthcontroller,
                  decoration: InputDecoration(
                  border: OutlineInputBorder(),
-                 labelText: 'Syvyys',
+                 labelText: 'Syvyys cm',
                  )
                 )
               ),
@@ -77,7 +83,40 @@ class _CalculatePageState extends State<CalculatePage> {
                 onPressed: calculateProduct,
                 child: Text('Laske tilavuus'),
               ),
-              Text('Maata on poistettava $_product cm^3'),
+              SizedBox(height: 50),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Maata on poistettava $_product $_unit'),
+                  Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _unit = 'cm^3';
+                            _unitMeasurementBool = true;
+                          });
+                          calculateProduct();
+                        },
+                       child: Text('cm^3'),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color.fromARGB(213, 12, 236, 169),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _unit = 'm^3';
+                            _unitMeasurementBool = false;
+                          });
+                          calculateProduct();
+                        },
+                       child: Text('m^3'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ]
           ),
         ),

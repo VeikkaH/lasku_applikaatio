@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lasku_applikaatio/pages/calculate_page.dart';
 import 'package:lasku_applikaatio/pages/page_2.dart';
+import 'package:lasku_applikaatio/pages/homepage.dart';
 
 void main() {
   runApp(const MainApp());
@@ -18,13 +19,20 @@ class MainAppState extends State<MainApp> {
   int _selectedIndex = 0;
   double groupAlignment = -1.0;
   List _pages = [
+    HomePage(),
     CalculatePage(),
     Page2(),
+    
   ];
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      routes: {
+            '/home': (context) => HomePage(),
+            '/calculate': (context) => CalculatePage(),
+            '/page2': (context) => Page2(),
+          },
       home: Row(
         children: [
             NavigationRail(
@@ -36,6 +44,10 @@ class MainAppState extends State<MainApp> {
                   });
                 },
               destinations: [
+                NavigationRailDestination(
+                  icon: Icon(Icons.home),
+                  label: Text('Koti'),
+                ),
                 NavigationRailDestination(
                   icon: Icon(Icons.calculate),
                   label: Text('Laske'),

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lasku_applikaatio/pages/calculate_page.dart';
-import 'package:lasku_applikaatio/pages/page_2.dart';
+import 'package:lasku_applikaatio/pages/printpage.dart';
 import 'package:lasku_applikaatio/pages/homepage.dart';
+import 'tools/NavigationRail.dart';
 
 void main() {
   runApp(const MainApp());
@@ -16,14 +17,7 @@ class MainApp extends StatefulWidget {
 
 class MainAppState extends State<MainApp> {
 
-  int _selectedIndex = 0;
-  double groupAlignment = -1.0;
-  List _pages = [
-    HomePage(),
-    CalculatePage(),
-    Page2(),
-    
-  ];
+  
 
   @override
   Widget build(BuildContext context) {
@@ -31,41 +25,9 @@ class MainAppState extends State<MainApp> {
       routes: {
             '/home': (context) => HomePage(),
             '/calculate': (context) => CalculatePage(),
-            '/page2': (context) => Page2(),
+            '/print': (context) => PrintPage(),
           },
-      home: Row(
-        children: [
-            NavigationRail(
-              selectedIndex: _selectedIndex,
-              groupAlignment: groupAlignment,
-              onDestinationSelected: (int index) {
-                  setState(() {
-                    _selectedIndex = index;
-                  });
-                },
-              destinations: [
-                NavigationRailDestination(
-                  icon: Icon(Icons.home),
-                  label: Text('Koti'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.calculate),
-                  label: Text('Laske'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.print),
-                  label: Text('Tulosta'),
-                ),
-              ],
-            ),
-            const VerticalDivider(thickness: 1, width: 1, color: Colors.grey),
-            Expanded(
-              child: Scaffold(
-                body: _pages[_selectedIndex]
-              )
-            )
-        ],
-      ),
+      home: NavigationRailWidget(initialSelectedPage: 0),
       );
   }
 }

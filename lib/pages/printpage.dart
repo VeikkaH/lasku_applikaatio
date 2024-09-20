@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class Page2 extends StatelessWidget {
-  const Page2({super.key});
+class PrintPage extends StatelessWidget {
+  const PrintPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -9,7 +9,8 @@ class Page2 extends StatelessWidget {
       body: Container(
         height: 300,
         width: 300,
-        color: Colors.blue,
+        color:Colors.blue,
+        child: Text("Tässä näet projektin tiedot ja voit tulostaa ne"),
       )
     );
   }

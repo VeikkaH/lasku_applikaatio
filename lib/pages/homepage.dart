@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lasku_applikaatio/project.dart';
 import 'package:lasku_applikaatio/part.dart';
-import 'package:lasku_applikaatio/pages/calculate_page.dart';
+import 'package:lasku_applikaatio/tools/NavigationRail.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -80,9 +81,16 @@ class _HomePageState extends State<HomePage> {
                 SizedBox(height: 100),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/calculate');
+                    Navigator.push(
+                     context,
+                     PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) => NavigationRailWidget(initialSelectedPage: 1),
+                        transitionDuration: Duration.zero,
+                        reverseTransitionDuration: Duration.zero,
+                      ),
+                    );
                   },
-                  child: Text('Luo Uusi Projekti'),
+                  child: Text('Siirry Laskentasivulle'),
                 ),
               ],
             ),

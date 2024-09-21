@@ -4,8 +4,14 @@ import 'package:lasku_applikaatio/project.dart';
 import 'package:lasku_applikaatio/part.dart';
 
 class CalculatePage extends StatefulWidget {
+  final List<Part> parts;
+  final String projectName;
 
-  const CalculatePage({super.key});
+  const CalculatePage({
+  super.key, 
+  required this.parts,
+  required this.projectName,
+  });
 
   @override
   State<CalculatePage> createState() => _CalculatePageState();
@@ -24,12 +30,6 @@ class _CalculatePageState extends State<CalculatePage> {
 
   bool _isButton1Green = true;
   bool _isButton2Green = false;
-
-  List <Part> partList = [
-    Part(partName: "Kellarivarasto", length: 7, width: 4, depth: 8),
-    Part(partName: "Sauna", length: 9, width: 40, depth: 12),
-    Part(partName: "Päärakennus", length: 22, width: 11, depth: 33),
-  ];
 
   void _toggleButton1() {
     setState(() {
@@ -75,7 +75,7 @@ class _CalculatePageState extends State<CalculatePage> {
             Column(
               children: [
                 SizedBox(height: 10),
-                Text("Projektin Osat"),
+                Text('${widget.projectName} osat'),
                 Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Container(
@@ -88,9 +88,9 @@ class _CalculatePageState extends State<CalculatePage> {
                       )
                     ),
                     child: ListView.builder(
-                      itemCount: partList.length,
+                      itemCount: widget.parts.length,
                       itemBuilder: (context, index) {
-                        return partList[index];
+                        return widget.parts[index];
                       },
                     ),
                   ),
@@ -147,7 +147,12 @@ class _CalculatePageState extends State<CalculatePage> {
                 ),
                 SizedBox(height: 10),
                 ElevatedButton(
-                  onPressed: calculateProduct,
+                  onPressed: () {
+                    if (_unit == '') {
+                      _unit = 'cm\u00B3';
+                    }
+                    calculateProduct();
+                  },
                   child: Text('Laske tilavuus'),
                 ),
                 SizedBox(height: 50),
@@ -197,7 +202,7 @@ class _CalculatePageState extends State<CalculatePage> {
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
-                    partList.add(Part(
+                    widget.parts.add(Part(
                       partName: _newPartNameController.text,
                       length: int.parse(_lengthcontroller.text),
                       width: int.parse(_widthcontroller.text),
@@ -217,7 +222,11 @@ class _CalculatePageState extends State<CalculatePage> {
                     Navigator.push(
                       context,
                       PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => NavigationRailWidget(initialSelectedPage: 2),
+                        pageBuilder: (context, animation, secondaryAnimation) => NavigationRailWidget(
+                          initialSelectedPage: 2,
+                          selectedParts: widget.parts,
+                          projectName: widget.projectName,
+                        ),
                         transitionDuration: Duration.zero,
                         reverseTransitionDuration: Duration.zero,
                       ),
@@ -243,14 +252,14 @@ class _CalculatePageState extends State<CalculatePage> {
                       )
                     ),
                     child: ListView.builder(
-                      itemCount: partList.length,
+                      itemCount: widget.parts.length,
                       itemBuilder: (context, index) {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(partList[index].partName),
+                            Text(widget.parts[index].partName),
                             Text(
-                              '${partList[index].length * partList[index].width * partList[index].depth} cm\u00B3',
+                              '${widget.parts[index].length * widget.parts[index].width * widget.parts[index].depth} cm\u00B3',
                               style: TextStyle(fontSize: 20),
                             ),
                           ],
@@ -259,8 +268,8 @@ class _CalculatePageState extends State<CalculatePage> {
                     ),
                   ),
                   Text(_unitMeasurementBool
-                      ? 'Kokonaismäärä: ${partList.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth)} cm\u00B3'
-                      : 'Kokonaismäärä: ${partList.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth / 1000000)} m\u00B3',
+                      ? 'Kokonaismäärä: ${widget.parts.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth)} cm\u00B3'
+                      : 'Kokonaismäärä: ${widget.parts.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth / 1000000)} m\u00B3',
                       style: TextStyle(fontSize: 25),
                   ),
                 ],

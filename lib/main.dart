@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lasku_applikaatio/pages/calculate_page.dart';
-import 'package:lasku_applikaatio/pages/printpage.dart';
-import 'package:lasku_applikaatio/pages/homepage.dart';
 import 'tools/NavigationRail.dart';
+import 'part.dart';
 
 void main() {
   runApp(const MainApp());
@@ -16,18 +14,18 @@ class MainApp extends StatefulWidget {
 }
 
 class MainAppState extends State<MainApp> {
-
+  List<Part> selectedParts = [];
+  String projectName = '';
   
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      routes: {
-            '/home': (context) => HomePage(),
-            '/calculate': (context) => CalculatePage(),
-            '/print': (context) => PrintPage(),
-          },
-      home: NavigationRailWidget(initialSelectedPage: 0),
-      );
+      home: NavigationRailWidget(
+        initialSelectedPage: 0,
+        selectedParts: selectedParts,
+        projectName: projectName,
+      ),
+    );
   }
 }

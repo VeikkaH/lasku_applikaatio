@@ -20,10 +20,22 @@ class _HomePageState extends State<HomePage> {
   int? _selectedProjectIndex;
 
   List projectList = [
-    ["Jeren Omakotitalo", <Part>[]],
-    ["Sirpan Kerrostalo", <Part>[]],
-    ["Jukan Mökki", <Part>[]],
-  ];
+  ["Jeren Omakotitalo", [
+    Part(partName: "Päärakennus", length: 8, width: 5, depth: 2),
+    Part(partName: "Kellari", length: 4, width: 5, depth: 3),
+    Part(partName: "Varasto", length: 10, width: 7, depth: 1),
+  ]],
+  ["Sirpan Kerrostalo", [
+    Part(partName: "Talo", length: 12, width: 8, depth: 3),
+    Part(partName: "Autotalli", length: 10, width: 5, depth: 4),
+    Part(partName: "Pyöräkatos", length: 12, width: 12, depth: 3),
+  ]],
+  ["Jukan Mökki", [
+    Part(partName: "Sauna", length: 7, width: 4, depth: 3),
+    Part(partName: "Kasvihuone", length: 8, width: 5, depth: 3),
+    Part(partName: "Kuntoilualue", length: 15, width: 6, depth: 2),
+  ]],
+];
 
   void _showProjectInfo(String projectName, int index) {
     setState(() {
@@ -190,7 +202,11 @@ class _HomePageState extends State<HomePage> {
                     Navigator.push(
                      context,
                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => NavigationRailWidget(initialSelectedPage: 1),
+                        pageBuilder: (context, animation, secondaryAnimation) => NavigationRailWidget(
+                          initialSelectedPage: 1, 
+                          selectedParts: projectList[_selectedProjectIndex!][1],
+                          projectName: projectList[_selectedProjectIndex!][0],
+                        ),
                         transitionDuration: Duration.zero,
                         reverseTransitionDuration: Duration.zero,
                       ),

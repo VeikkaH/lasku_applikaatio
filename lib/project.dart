@@ -6,11 +6,15 @@ class Project extends StatelessWidget {
 
   final String projectName;
   final List<Part> parts;
+  final Function(String) onCardTap;
+  final Function(String) onEditTap;
 
   Project({
     super.key,
     required this.projectName,
     required this.parts,
+    required this.onCardTap,
+    required this.onEditTap,
   });
 
   @override
@@ -19,6 +23,7 @@ class Project extends StatelessWidget {
       child: InkWell(
         splashColor: Colors.blue.withAlpha(30),
         onTap: () {
+          onCardTap(projectName);
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 5.0),
@@ -38,6 +43,7 @@ class Project extends StatelessWidget {
                   color: Colors.transparent,
                   child: InkWell(
                     onTap: () {
+                      onEditTap(projectName);
                     },
                     borderRadius: BorderRadius.circular(5),
                     splashColor: Colors.blueAccent.withOpacity(0.3),

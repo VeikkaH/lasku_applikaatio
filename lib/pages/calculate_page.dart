@@ -260,7 +260,9 @@ class _CalculatePageState extends State<CalculatePage> {
                   ),
                   Text(_unitMeasurementBool
                       ? 'Kokonaismäärä: ${partList.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth)} cm\u00B3'
-                      : 'Kokonaismäärä: ${partList.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth / 1000000)} m\u00B3'),
+                      : 'Kokonaismäärä: ${partList.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth / 1000000)} m\u00B3',
+                      style: TextStyle(fontSize: 25),
+                  ),
                 ],
               ),
             ),

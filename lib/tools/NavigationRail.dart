@@ -43,6 +43,7 @@ class _NavigationRailWidgetState extends State<NavigationRailWidget> {
             NavigationRail(
               selectedIndex: _selectedPage,
               groupAlignment: groupAlignment,
+              backgroundColor: Color.fromARGB(161, 223, 241, 255),
               onDestinationSelected: (int index) {
                   setState(() {
                     _selectedPage = index;

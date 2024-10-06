@@ -33,7 +33,7 @@ class _NavigationRailWidgetState extends State<NavigationRailWidget> {
     _pages = [
       HomePage(),
       CalculatePage(parts: widget.selectedParts, projectName: widget.projectName),
-      PrintPage(),
+      PrintPage(parts: widget.selectedParts, projectName: widget.projectName),
     ];
   }
 
@@ -42,6 +42,9 @@ class _NavigationRailWidgetState extends State<NavigationRailWidget> {
       _selectedPage = value;
       if (_selectedPage == 1) {
         _pages[1] = CalculatePage(parts: widget.selectedParts, projectName: widget.projectName);
+      }
+      if (_selectedPage == 2) {
+        _pages[1] = PrintPage(parts: widget.selectedParts, projectName: widget.projectName);
       }
     });
   }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lasku_applikaatio/pages/homepage.dart';
 import 'part.dart';
 
 class Project extends StatelessWidget {

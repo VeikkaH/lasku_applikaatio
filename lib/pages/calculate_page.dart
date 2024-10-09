@@ -1,6 +1,5 @@
 import "package:flutter/material.dart";
 import 'package:lasku_applikaatio/tools/NavigationRail.dart';
-import 'package:lasku_applikaatio/project.dart';
 import 'package:lasku_applikaatio/part.dart';
 
 class CalculatePage extends StatefulWidget {

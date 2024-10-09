@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:lasku_applikaatio/project.dart';
 import 'package:lasku_applikaatio/part.dart';
 import 'package:lasku_applikaatio/tools/NavigationRail.dart';
+import 'package:lasku_applikaatio/tools/database.dart';
+import 'package:drift/drift.dart' as drift;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,23 +21,57 @@ class _HomePageState extends State<HomePage> {
   bool _showDeleteButton = false;
   int? _selectedProjectIndex;
 
-  List projectList = [
-  ["Jeren Omakotitalo", [
-    Part(partName: "Päärakennus", length: 8, width: 5, depth: 2),
-    Part(partName: "Kellari", length: 4, width: 5, depth: 3),
-    Part(partName: "Varasto", length: 10, width: 7, depth: 1),
-  ]],
-  ["Sirpan Kerrostalo", [
-    Part(partName: "Talo", length: 12, width: 8, depth: 3),
-    Part(partName: "Autotalli", length: 10, width: 5, depth: 4),
-    Part(partName: "Pyöräkatos", length: 12, width: 12, depth: 3),
-  ]],
-  ["Jukan Mökki", [
-    Part(partName: "Sauna", length: 7, width: 4, depth: 3),
-    Part(partName: "Kasvihuone", length: 8, width: 5, depth: 3),
-    Part(partName: "Kuntoilualue", length: 15, width: 6, depth: 2),
-  ]],
-];
+  List<ProjectDataData> projectList = [];
+  late AppDatabase database;
+
+  @override
+  void initState() {
+    super.initState();
+    database = AppDatabase();
+    _initializeDatabase();
+    _fetchProjectsFromDatabase();
+  }
+
+  Future<void> _initializeDatabase() async {
+    await database.initializeDefaultProject();
+    await database.initializeDefaultPart();
+    await _fetchProjectsFromDatabase();
+  }
+
+  Future<void> _fetchProjectsFromDatabase() async {
+    final projects = await database.select(database.projectData).get();
+    setState(() {
+      projectList = projects;
+    });
+  }
+
+  // Insert a new project into the database
+  Future<void> _addProject(String projectName) async {
+    await database.into(database.projectData).insert(
+      ProjectDataCompanion(
+        projectName: drift.Value(projectName),
+      ),
+    );
+    await _fetchProjectsFromDatabase();
+  }
+
+  Future<void> _updateProject(int projectId, String newTitle) async {
+    await database.update(database.projectData).replace(
+      ProjectDataData(id: projectId, projectName: newTitle),
+    );
+    await _fetchProjectsFromDatabase();
+  }
+
+  Future<void> _deleteProject(int projectId) async {
+    await database.delete(database.projectData).delete(
+      ProjectDataData(id: projectId, projectName: ''),
+    );
+    await _fetchProjectsFromDatabase();
+  }
+
+  Future<List<PartDataData>> _fetchPartsForProject(int projectId) async {
+    return await database.fetchPartsByProjectId(projectId);
+  }
 
   void _showProjectInfo(String projectName, int index) {
     setState(() {
@@ -68,7 +104,7 @@ class _HomePageState extends State<HomePage> {
       _showDeleteButton = false;
     });
   }
-  void _deleteProject() {
+  void _deleteProjectData() {
     setState(() {
       projectList.removeAt(_selectedProjectIndex!);
       _newProjectNameController.clear();
@@ -103,14 +139,34 @@ class _HomePageState extends State<HomePage> {
                     child: ListView.builder(
                       itemCount: projectList.length,
                       itemBuilder: (context, index) {
-                        return Project(
-                          projectName: projectList[index][0], 
-                          parts: projectList[index][1],
-                          onCardTap: (name) => _showProjectInfo(name, index),
-                          onEditTap: (name) => _enableEditing(name, index),
+                        return FutureBuilder<List<PartDataData>>(
+                          future: _fetchPartsForProject(projectList[index].id),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return CircularProgressIndicator();
+                            }
+                            if (snapshot.hasError) {
+                              return Text("Error: ${snapshot.error}");
+                            }
+                            
+                            final parts = snapshot.data ?? [];
+
+                            return Project(
+                              projectName: projectList[index].projectName,
+                              parts: parts.map((part) => Part(
+                                partName: part.partName,
+                                length: part.length.toInt(),
+                                width: part.width.toInt(),
+                                depth: part.depth.toInt(),
+                              )).toList(),
+                              onCardTap: (name) => _showProjectInfo(name, index),
+                              onEditTap: (name) => _enableEditing(name, index),
+                            );
+                          },
                         );
                       },
-                    )),
+                    ),
+                  )
                 ),
               ],
             ),
@@ -147,12 +203,14 @@ class _HomePageState extends State<HomePage> {
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
+                      print(_showEditButton);
                       if (_showEditButton) {
                         if (_selectedProjectIndex != null) {
-                          projectList[_selectedProjectIndex!][0] = _newProjectNameController.text;
+                          final projectId = projectList[_selectedProjectIndex!].id;
+                          _updateProject(projectId, _newProjectNameController.text);
                         } } else {
-                          projectList.add([_newProjectNameController.text, <Part>[]]);
-                      _newProjectNameController.clear();
+                          _addProject(_newProjectNameController.text);
+                          _newProjectNameController.clear();
                         }
                     });
                   },
@@ -173,8 +231,14 @@ class _HomePageState extends State<HomePage> {
                               children: [
                                 ElevatedButton(
                                   onPressed: () {
-                                    _deleteProject();
+                                    final projectId = projectList[_selectedProjectIndex!].id;
+                                    _deleteProject(projectId);
                                     Navigator.of(context).pop();
+                                    _newProjectNameController.clear();
+                                    _isTextControllerEditable = true;
+                                    _showBackButton = false;
+                                    _showEditButton = false;
+                                    _showDeleteButton = false;
                                   },
                                   child: Text("Kyllä", style: TextStyle(color: Colors.red)),
                                 ),
@@ -198,19 +262,32 @@ class _HomePageState extends State<HomePage> {
                 SizedBox(height: 10),
                 SizedBox(height: 100),
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                     context,
-                     PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => NavigationRailWidget(
-                          initialSelectedPage: 1, 
-                          selectedParts: projectList[_selectedProjectIndex!][1],
-                          projectName: projectList[_selectedProjectIndex!][0],
+                  onPressed: () async {
+                    final BuildContext localContext = context;
+                    final parts = await (database.select(database.partData)
+                      ..where((part) => part.projectId.equals(projectList[_selectedProjectIndex!].id)))
+                      .get().then((result) => result.map((partData) => 
+                      Part(
+                      partName: partData.partName,
+                      length: partData.length.toInt(),
+                      width: partData.width.toInt(),
+                      depth: partData.depth.toInt(),
+                      )).toList());
+
+                    if (mounted) {
+                      Navigator.push(
+                        localContext,
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) => NavigationRailWidget(
+                            initialSelectedPage: 1, 
+                            selectedParts: parts,
+                            projectName: projectList[_selectedProjectIndex!].projectName,
+                          ),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
                         ),
-                        transitionDuration: Duration.zero,
-                        reverseTransitionDuration: Duration.zero,
-                      ),
-                    );
+                      );
+                    }
                   },
                   child: Text('Siirry Laskentasivulle'),
                 ),

@@ -24,14 +24,8 @@ class $ProjectDataTable extends ProjectData
   late final GeneratedColumn<String> projectName = GeneratedColumn<String>(
       'Name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
   @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
-  @override
-  List<GeneratedColumn> get $columns => [id, projectName, createdAt];
+  List<GeneratedColumn> get $columns => [id, projectName];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -51,10 +45,6 @@ class $ProjectDataTable extends ProjectData
     } else if (isInserting) {
       context.missing(_projectNameMeta);
     }
-    if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
-    }
     return context;
   }
 
@@ -68,8 +58,6 @@ class $ProjectDataTable extends ProjectData
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       projectName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}Name'])!,
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at']),
     );
   }
 
@@ -82,17 +70,12 @@ class $ProjectDataTable extends ProjectData
 class ProjectDataData extends DataClass implements Insertable<ProjectDataData> {
   final int id;
   final String projectName;
-  final DateTime? createdAt;
-  const ProjectDataData(
-      {required this.id, required this.projectName, this.createdAt});
+  const ProjectDataData({required this.id, required this.projectName});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['Name'] = Variable<String>(projectName);
-    if (!nullToAbsent || createdAt != null) {
-      map['created_at'] = Variable<DateTime>(createdAt);
-    }
     return map;
   }
 
@@ -100,9 +83,6 @@ class ProjectDataData extends DataClass implements Insertable<ProjectDataData> {
     return ProjectDataCompanion(
       id: Value(id),
       projectName: Value(projectName),
-      createdAt: createdAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(createdAt),
     );
   }
 
@@ -112,7 +92,6 @@ class ProjectDataData extends DataClass implements Insertable<ProjectDataData> {
     return ProjectDataData(
       id: serializer.fromJson<int>(json['id']),
       projectName: serializer.fromJson<String>(json['projectName']),
-      createdAt: serializer.fromJson<DateTime?>(json['createdAt']),
     );
   }
   @override
@@ -121,25 +100,18 @@ class ProjectDataData extends DataClass implements Insertable<ProjectDataData> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'projectName': serializer.toJson<String>(projectName),
-      'createdAt': serializer.toJson<DateTime?>(createdAt),
     };
   }
 
-  ProjectDataData copyWith(
-          {int? id,
-          String? projectName,
-          Value<DateTime?> createdAt = const Value.absent()}) =>
-      ProjectDataData(
+  ProjectDataData copyWith({int? id, String? projectName}) => ProjectDataData(
         id: id ?? this.id,
         projectName: projectName ?? this.projectName,
-        createdAt: createdAt.present ? createdAt.value : this.createdAt,
       );
   ProjectDataData copyWithCompanion(ProjectDataCompanion data) {
     return ProjectDataData(
       id: data.id.present ? data.id.value : this.id,
       projectName:
           data.projectName.present ? data.projectName.value : this.projectName,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
 
@@ -147,57 +119,46 @@ class ProjectDataData extends DataClass implements Insertable<ProjectDataData> {
   String toString() {
     return (StringBuffer('ProjectDataData(')
           ..write('id: $id, ')
-          ..write('projectName: $projectName, ')
-          ..write('createdAt: $createdAt')
+          ..write('projectName: $projectName')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, projectName, createdAt);
+  int get hashCode => Object.hash(id, projectName);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ProjectDataData &&
           other.id == this.id &&
-          other.projectName == this.projectName &&
-          other.createdAt == this.createdAt);
+          other.projectName == this.projectName);
 }
 
 class ProjectDataCompanion extends UpdateCompanion<ProjectDataData> {
   final Value<int> id;
   final Value<String> projectName;
-  final Value<DateTime?> createdAt;
   const ProjectDataCompanion({
     this.id = const Value.absent(),
     this.projectName = const Value.absent(),
-    this.createdAt = const Value.absent(),
   });
   ProjectDataCompanion.insert({
     this.id = const Value.absent(),
     required String projectName,
-    this.createdAt = const Value.absent(),
   }) : projectName = Value(projectName);
   static Insertable<ProjectDataData> custom({
     Expression<int>? id,
     Expression<String>? projectName,
-    Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (projectName != null) 'Name': projectName,
-      if (createdAt != null) 'created_at': createdAt,
     });
   }
 
-  ProjectDataCompanion copyWith(
-      {Value<int>? id,
-      Value<String>? projectName,
-      Value<DateTime?>? createdAt}) {
+  ProjectDataCompanion copyWith({Value<int>? id, Value<String>? projectName}) {
     return ProjectDataCompanion(
       id: id ?? this.id,
       projectName: projectName ?? this.projectName,
-      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -210,9 +171,6 @@ class ProjectDataCompanion extends UpdateCompanion<ProjectDataData> {
     if (projectName.present) {
       map['Name'] = Variable<String>(projectName.value);
     }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
     return map;
   }
 
@@ -220,8 +178,7 @@ class ProjectDataCompanion extends UpdateCompanion<ProjectDataData> {
   String toString() {
     return (StringBuffer('ProjectDataCompanion(')
           ..write('id: $id, ')
-          ..write('projectName: $projectName, ')
-          ..write('createdAt: $createdAt')
+          ..write('projectName: $projectName')
           ..write(')'))
         .toString();
   }
@@ -249,7 +206,8 @@ class $PartDataTable extends PartData
       'project_id', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: true,
-      $customConstraints: 'REFERENCES project(id)');
+      $customConstraints:
+          'REFERENCES project_data(id) ON DELETE CASCADE NOT NULL');
   static const VerificationMeta _partNameMeta =
       const VerificationMeta('partName');
   @override
@@ -573,20 +531,50 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [projectData, partData];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
+        [
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('project_data',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('part_data', kind: UpdateKind.delete),
+            ],
+          ),
+        ],
+      );
 }
 
 typedef $$ProjectDataTableCreateCompanionBuilder = ProjectDataCompanion
     Function({
   Value<int> id,
   required String projectName,
-  Value<DateTime?> createdAt,
 });
 typedef $$ProjectDataTableUpdateCompanionBuilder = ProjectDataCompanion
     Function({
   Value<int> id,
   Value<String> projectName,
-  Value<DateTime?> createdAt,
 });
+
+final class $$ProjectDataTableReferences
+    extends BaseReferences<_$AppDatabase, $ProjectDataTable, ProjectDataData> {
+  $$ProjectDataTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$PartDataTable, List<PartDataData>>
+      _partDataRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+          db.partData,
+          aliasName:
+              $_aliasNameGenerator(db.projectData.id, db.partData.projectId));
+
+  $$PartDataTableProcessedTableManager get partDataRefs {
+    final manager = $$PartDataTableTableManager($_db, $_db.partData)
+        .filter((f) => f.projectId.id($_item.id));
+
+    final cache = $_typedResult.readTableOrNull(_partDataRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
 
 class $$ProjectDataTableFilterComposer
     extends FilterComposer<_$AppDatabase, $ProjectDataTable> {
@@ -601,10 +589,18 @@ class $$ProjectDataTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
-  ColumnFilters<DateTime> get createdAt => $state.composableBuilder(
-      column: $state.table.createdAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
+  ComposableFilter partDataRefs(
+      ComposableFilter Function($$PartDataTableFilterComposer f) f) {
+    final $$PartDataTableFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $state.db.partData,
+        getReferencedColumn: (t) => t.projectId,
+        builder: (joinBuilder, parentComposers) =>
+            $$PartDataTableFilterComposer(ComposerState(
+                $state.db, $state.db.partData, joinBuilder, parentComposers)));
+    return f(composer);
+  }
 }
 
 class $$ProjectDataTableOrderingComposer
@@ -619,11 +615,6 @@ class $$ProjectDataTableOrderingComposer
       column: $state.table.projectName,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get createdAt => $state.composableBuilder(
-      column: $state.table.createdAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
 class $$ProjectDataTableTableManager extends RootTableManager<
@@ -634,12 +625,9 @@ class $$ProjectDataTableTableManager extends RootTableManager<
     $$ProjectDataTableOrderingComposer,
     $$ProjectDataTableCreateCompanionBuilder,
     $$ProjectDataTableUpdateCompanionBuilder,
-    (
-      ProjectDataData,
-      BaseReferences<_$AppDatabase, $ProjectDataTable, ProjectDataData>
-    ),
+    (ProjectDataData, $$ProjectDataTableReferences),
     ProjectDataData,
-    PrefetchHooks Function()> {
+    PrefetchHooks Function({bool partDataRefs})> {
   $$ProjectDataTableTableManager(_$AppDatabase db, $ProjectDataTable table)
       : super(TableManagerState(
           db: db,
@@ -651,27 +639,48 @@ class $$ProjectDataTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> projectName = const Value.absent(),
-            Value<DateTime?> createdAt = const Value.absent(),
           }) =>
               ProjectDataCompanion(
             id: id,
             projectName: projectName,
-            createdAt: createdAt,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String projectName,
-            Value<DateTime?> createdAt = const Value.absent(),
           }) =>
               ProjectDataCompanion.insert(
             id: id,
             projectName: projectName,
-            createdAt: createdAt,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable(table),
+                    $$ProjectDataTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({partDataRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (partDataRefs) db.partData],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (partDataRefs)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable:
+                            $$ProjectDataTableReferences._partDataRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$ProjectDataTableReferences(db, table, p0)
+                                .partDataRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.projectId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
         ));
 }
 
@@ -683,12 +692,9 @@ typedef $$ProjectDataTableProcessedTableManager = ProcessedTableManager<
     $$ProjectDataTableOrderingComposer,
     $$ProjectDataTableCreateCompanionBuilder,
     $$ProjectDataTableUpdateCompanionBuilder,
-    (
-      ProjectDataData,
-      BaseReferences<_$AppDatabase, $ProjectDataTable, ProjectDataData>
-    ),
+    (ProjectDataData, $$ProjectDataTableReferences),
     ProjectDataData,
-    PrefetchHooks Function()>;
+    PrefetchHooks Function({bool partDataRefs})>;
 typedef $$PartDataTableCreateCompanionBuilder = PartDataCompanion Function({
   Value<int> id,
   required int projectId,
@@ -706,16 +712,30 @@ typedef $$PartDataTableUpdateCompanionBuilder = PartDataCompanion Function({
   Value<double> depth,
 });
 
+final class $$PartDataTableReferences
+    extends BaseReferences<_$AppDatabase, $PartDataTable, PartDataData> {
+  $$PartDataTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProjectDataTable _projectIdTable(_$AppDatabase db) =>
+      db.projectData.createAlias(
+          $_aliasNameGenerator(db.partData.projectId, db.projectData.id));
+
+  $$ProjectDataTableProcessedTableManager? get projectId {
+    if ($_item.projectId == null) return null;
+    final manager = $$ProjectDataTableTableManager($_db, $_db.projectData)
+        .filter((f) => f.id($_item.projectId!));
+    final item = $_typedResult.readTableOrNull(_projectIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
 class $$PartDataTableFilterComposer
     extends FilterComposer<_$AppDatabase, $PartDataTable> {
   $$PartDataTableFilterComposer(super.$state);
   ColumnFilters<int> get id => $state.composableBuilder(
       column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get projectId => $state.composableBuilder(
-      column: $state.table.projectId,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -738,6 +758,18 @@ class $$PartDataTableFilterComposer
       column: $state.table.depth,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
+
+  $$ProjectDataTableFilterComposer get projectId {
+    final $$ProjectDataTableFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.projectId,
+        referencedTable: $state.db.projectData,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) =>
+            $$ProjectDataTableFilterComposer(ComposerState($state.db,
+                $state.db.projectData, joinBuilder, parentComposers)));
+    return composer;
+  }
 }
 
 class $$PartDataTableOrderingComposer
@@ -745,11 +777,6 @@ class $$PartDataTableOrderingComposer
   $$PartDataTableOrderingComposer(super.$state);
   ColumnOrderings<int> get id => $state.composableBuilder(
       column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get projectId => $state.composableBuilder(
-      column: $state.table.projectId,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
@@ -772,6 +799,18 @@ class $$PartDataTableOrderingComposer
       column: $state.table.depth,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  $$ProjectDataTableOrderingComposer get projectId {
+    final $$ProjectDataTableOrderingComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.projectId,
+        referencedTable: $state.db.projectData,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) =>
+            $$ProjectDataTableOrderingComposer(ComposerState($state.db,
+                $state.db.projectData, joinBuilder, parentComposers)));
+    return composer;
+  }
 }
 
 class $$PartDataTableTableManager extends RootTableManager<
@@ -782,9 +821,9 @@ class $$PartDataTableTableManager extends RootTableManager<
     $$PartDataTableOrderingComposer,
     $$PartDataTableCreateCompanionBuilder,
     $$PartDataTableUpdateCompanionBuilder,
-    (PartDataData, BaseReferences<_$AppDatabase, $PartDataTable, PartDataData>),
+    (PartDataData, $$PartDataTableReferences),
     PartDataData,
-    PrefetchHooks Function()> {
+    PrefetchHooks Function({bool projectId})> {
   $$PartDataTableTableManager(_$AppDatabase db, $PartDataTable table)
       : super(TableManagerState(
           db: db,
@@ -826,9 +865,43 @@ class $$PartDataTableTableManager extends RootTableManager<
             depth: depth,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) =>
+                  (e.readTable(table), $$PartDataTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({projectId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (projectId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.projectId,
+                    referencedTable:
+                        $$PartDataTableReferences._projectIdTable(db),
+                    referencedColumn:
+                        $$PartDataTableReferences._projectIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ));
 }
 
@@ -840,9 +913,9 @@ typedef $$PartDataTableProcessedTableManager = ProcessedTableManager<
     $$PartDataTableOrderingComposer,
     $$PartDataTableCreateCompanionBuilder,
     $$PartDataTableUpdateCompanionBuilder,
-    (PartDataData, BaseReferences<_$AppDatabase, $PartDataTable, PartDataData>),
+    (PartDataData, $$PartDataTableReferences),
     PartDataData,
-    PrefetchHooks Function()>;
+    PrefetchHooks Function({bool projectId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;

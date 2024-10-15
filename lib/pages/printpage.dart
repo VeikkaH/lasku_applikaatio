@@ -53,7 +53,7 @@ class PrintPage extends StatelessWidget {
               ),
               pw.Divider(),
               pw.SizedBox(height: 10),
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headers: [
                   'Osa',
                   'Pituus (cm\u00B3)',

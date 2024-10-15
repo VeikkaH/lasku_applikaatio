@@ -33,19 +33,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initializeDatabase() async {
-    await database.initializeDefaultProject();
-    await database.initializeDefaultPart();
     await _fetchProjectsFromDatabase();
   }
 
   Future<void> _fetchProjectsFromDatabase() async {
-    final projects = await database.select(database.projectData).get();
+    final projects = await database.fetchProjectsFromDatabase();
     setState(() {
       projectList = projects;
     });
   }
-
-  // Insert a new project into the database
   Future<void> _addProject(String projectName) async {
     await database.into(database.projectData).insert(
       ProjectDataCompanion(
@@ -94,9 +90,9 @@ class _HomePageState extends State<HomePage> {
       _showDeleteButton = true;
     });
   }
-
-  void _removeProject() {
+  void _deleteProjectData(int projectId) {
     setState(() {
+      _deleteProject(projectId);
       _newProjectNameController.clear();
       _isTextControllerEditable = true;
       _showBackButton = false;
@@ -104,9 +100,9 @@ class _HomePageState extends State<HomePage> {
       _showDeleteButton = false;
     });
   }
-  void _deleteProjectData() {
+
+  void _backButtonPress() {
     setState(() {
-      projectList.removeAt(_selectedProjectIndex!);
       _newProjectNameController.clear();
       _isTextControllerEditable = true;
       _showBackButton = false;
@@ -150,7 +146,6 @@ class _HomePageState extends State<HomePage> {
                             }
                             
                             final parts = snapshot.data ?? [];
-
                             return Project(
                               projectName: projectList[index].projectName,
                               parts: parts.map((part) => Part(
@@ -193,7 +188,7 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(width: 15),
                     if (_showBackButton)
                       ElevatedButton(
-                        onPressed: _removeProject,
+                        onPressed: _backButtonPress,
                         child: Text('Takaisin'),
                       ),
                   ],
@@ -203,7 +198,6 @@ class _HomePageState extends State<HomePage> {
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      print(_showEditButton);
                       if (_showEditButton) {
                         if (_selectedProjectIndex != null) {
                           final projectId = projectList[_selectedProjectIndex!].id;
@@ -231,16 +225,11 @@ class _HomePageState extends State<HomePage> {
                               children: [
                                 ElevatedButton(
                                   onPressed: () {
-                                    final projectId = projectList[_selectedProjectIndex!].id;
-                                    _deleteProject(projectId);
+                                    _deleteProjectData(projectList[_selectedProjectIndex!].id);
                                     Navigator.of(context).pop();
-                                    _newProjectNameController.clear();
-                                    _isTextControllerEditable = true;
-                                    _showBackButton = false;
-                                    _showEditButton = false;
-                                    _showDeleteButton = false;
                                   },
-                                  child: Text("Kyllä", style: TextStyle(color: Colors.red)),
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                  child: Text("Kyllä", style: TextStyle(color: Colors.white)),
                                 ),
                                 SizedBox(width: 20),
                                 ElevatedButton(
@@ -257,7 +246,7 @@ class _HomePageState extends State<HomePage> {
                     );
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  child: Text('Poista Projekti'),
+                  child: Text('Poista Projekti', style: TextStyle(color: Colors.white)),
                 ),
                 SizedBox(height: 10),
                 SizedBox(height: 100),

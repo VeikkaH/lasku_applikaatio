@@ -1,7 +1,8 @@
 import "package:flutter/material.dart";
 import 'package:lasku_applikaatio/tools/NavigationRail.dart';
 import 'package:lasku_applikaatio/part.dart';
-
+import 'package:lasku_applikaatio/tools/database.dart';
+import 'package:drift/drift.dart' as drift;
 class CalculatePage extends StatefulWidget {
   final List<Part> parts;
   final String projectName;
@@ -29,6 +30,11 @@ class _CalculatePageState extends State<CalculatePage> {
 
   bool _isButton1Green = true;
   bool _isButton2Green = false;
+
+  late AppDatabase database;
+  List<ProjectDataData> projectList = [];
+  List<PartDataData> partList = [];
+  int? projectId;
 
   void _toggleButton1() {
     setState(() {
@@ -66,6 +72,68 @@ class _CalculatePageState extends State<CalculatePage> {
   }
 
   @override
+  
+  void initState() {
+    super.initState();
+    database = AppDatabase();
+    _initializeDatabase();
+  }
+
+  Future<void> _initializeDatabase() async {
+    await _fetchProjectsFromDatabase();
+    await _fetchPartsForProject();
+  }
+
+  Future<void> _fetchProjectsFromDatabase() async {
+    final projects = await database.fetchProjectsFromDatabase();
+    setState(() {
+      projectList = projects;
+    });
+  }
+  Future<void> _updateProject(int projectId, String newTitle) async {
+    await database.update(database.projectData).replace(
+      ProjectDataData(id: projectId, projectName: newTitle),
+    );
+    await _fetchProjectsFromDatabase();
+  }
+
+  Future<void> _deleteProject(int projectId) async {
+    await database.delete(database.projectData).delete(
+      ProjectDataData(id: projectId, projectName: ''),
+    );
+    await _fetchProjectsFromDatabase();
+  }
+
+  Future<List<PartDataData>> _fetchPartsForProject() async {
+    try {
+    final project = projectList.firstWhere(
+      (project) => project.projectName == widget.projectName,
+      orElse: () {
+        throw Exception('Project not found');
+      },
+    );
+    projectId = project.id;
+    if (projectId == null) {
+      print('Error: projectId is null');
+      return [];
+    }
+
+    final fetchedParts = await database.fetchPartsByProjectId(projectId!);
+    setState(() {
+      partList = fetchedParts;
+    });
+    return fetchedParts;  //Ensure no null return
+
+  } catch (e) {
+    print('Error: $e');
+    setState(() {
+      partList = [];
+    });
+    return [];
+  }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
@@ -87,11 +155,17 @@ class _CalculatePageState extends State<CalculatePage> {
                       )
                     ),
                     child: ListView.builder(
-                      itemCount: widget.parts.length,
+                      itemCount: partList.length,
                       itemBuilder: (context, index) {
-                        return widget.parts[index];
+                        final part = partList[index];
+                        return Part(
+                          partName: part.partName,
+                          length: part.length.toInt(),
+                          width: part.width.toInt(),
+                          depth: part.depth.toInt(),
+                        );
                       },
-                    ),
+                    ),  
                   ),
                 ),
               ],
@@ -199,19 +273,30 @@ class _CalculatePageState extends State<CalculatePage> {
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                    widget.parts.add(Part(
-                      partName: _newPartNameController.text,
-                      length: int.parse(_lengthcontroller.text),
-                      width: int.parse(_widthcontroller.text),
-                      depth: int.parse(_depthcontroller.text),
-                    ));
-                      _newPartNameController.clear();
-                      _lengthcontroller.clear();
-                      _widthcontroller.clear();
-                      _depthcontroller.clear();
+                  onPressed: () async {
+                    if (_newPartNameController.text.isNotEmpty &&
+                      _lengthcontroller.text.isNotEmpty &&
+                      _widthcontroller.text.isNotEmpty &&
+                      _depthcontroller.text.isNotEmpty) {
+
+                      await database.into(database.partData).insert(
+                        PartDataCompanion(
+                          partName: drift.Value(_newPartNameController.text),
+                          length: drift.Value(double.parse(_lengthcontroller.text)),
+                          width: drift.Value(double.parse(_widthcontroller.text)),
+                          depth: drift.Value(double.parse(_depthcontroller.text)),
+                          projectId: drift.Value(projectId ?? 0),
+                        ),
+                      );
+
+                      await _fetchPartsForProject();
+                      setState(() {
+                        _newPartNameController.clear();
+                        _lengthcontroller.clear();
+                        _widthcontroller.clear();
+                        _depthcontroller.clear();
                       });
+                    }
                   },
                   child: Text('Lisää Osa'),
                 ),
@@ -251,14 +336,14 @@ class _CalculatePageState extends State<CalculatePage> {
                       )
                     ),
                     child: ListView.builder(
-                      itemCount: widget.parts.length,
+                      itemCount: partList.length,
                       itemBuilder: (context, index) {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(widget.parts[index].partName),
+                            Text(partList[index].partName),
                             Text(
-                              '${widget.parts[index].length * widget.parts[index].width * widget.parts[index].depth} cm\u00B3',
+                              '${partList[index].length * partList[index].width * partList[index].depth} cm\u00B3',
                               style: TextStyle(fontSize: 20),
                             ),
                           ],
@@ -267,8 +352,8 @@ class _CalculatePageState extends State<CalculatePage> {
                     ),
                   ),
                   Text(_unitMeasurementBool
-                      ? 'Kokonaismäärä: ${widget.parts.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth)} cm\u00B3'
-                      : 'Kokonaismäärä: ${widget.parts.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth / 1000000)} m\u00B3',
+                      ? 'Kokonaismäärä: ${partList.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth)} cm\u00B3'
+                      : 'Kokonaismäärä: ${partList.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth / 1000000)} m\u00B3',
                       style: TextStyle(fontSize: 25),
                   ),
                 ],

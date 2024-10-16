@@ -3,13 +3,12 @@ import 'package:lasku_applikaatio/tools/NavigationRail.dart';
 import 'package:lasku_applikaatio/part.dart';
 import 'package:lasku_applikaatio/tools/database.dart';
 import 'package:drift/drift.dart' as drift;
+
 class CalculatePage extends StatefulWidget {
-  final List<Part> parts;
   final String projectName;
 
   const CalculatePage({
   super.key, 
-  required this.parts,
   required this.projectName,
   });
 
@@ -23,13 +22,18 @@ class _CalculatePageState extends State<CalculatePage> {
   final _lengthcontroller = TextEditingController();
   final _widthcontroller = TextEditingController();
   final _depthcontroller = TextEditingController();
-
+  int? _selectedPartIndex;
+  
   String _product = '';
   String _unit = '';
   bool _unitMeasurementBool = true;  //true = cm, false = m;
 
   bool _isButton1Green = true;
   bool _isButton2Green = false;
+  bool _showEditButton = false;
+  bool _showDeleteButton = false;
+  bool _showBackButton = false;
+  bool _isTextControllerEditable = true;
 
   late AppDatabase database;
   List<ProjectDataData> projectList = [];
@@ -53,6 +57,20 @@ class _CalculatePageState extends State<CalculatePage> {
       }
     });
   }
+  
+  void _enableEditing(String projectName, int length, int width, int depth, int index) {    //When clicking on edit button on project
+    setState(() {
+      _newPartNameController.text = projectName;
+      _lengthcontroller.text = length.toString();
+      _widthcontroller.text = width.toString();
+      _depthcontroller.text = depth.toString();
+      _showEditButton = true;
+      _selectedPartIndex = index;
+      _showDeleteButton = true;
+      _showBackButton = true;
+      _isTextControllerEditable = true;	
+    });
+  }
 
   void calculateProduct() {
     if (_lengthcontroller.text.isNotEmpty &&
@@ -71,6 +89,31 @@ class _CalculatePageState extends State<CalculatePage> {
     }
   }
 
+  void _backButtonPress() {       //When clicking on back button
+    setState(() {
+      _newPartNameController.clear();
+      _lengthcontroller.clear();
+      _widthcontroller.clear();
+      _depthcontroller.clear();
+      _showBackButton = false;
+      _showEditButton = false;
+      _showDeleteButton = false;
+      _isTextControllerEditable = true;
+    });
+  }
+  void _showPartInfo(String projectName, int length, int width, int depth, int index) {    //When clicking on edit button on project
+    setState(() {
+      _newPartNameController.text = projectName;
+      _lengthcontroller.text = length.toString();
+      _widthcontroller.text = width.toString();
+      _depthcontroller.text = depth.toString();
+      _showEditButton = false;
+      _selectedPartIndex = index;
+      _showDeleteButton = false;
+      _showBackButton = true;
+      _isTextControllerEditable = false;
+    });
+  }
   @override
   
   void initState() {
@@ -90,18 +133,23 @@ class _CalculatePageState extends State<CalculatePage> {
       projectList = projects;
     });
   }
-  Future<void> _updateProject(int projectId, String newTitle) async {
-    await database.update(database.projectData).replace(
-      ProjectDataData(id: projectId, projectName: newTitle),
+  Future<void> _updatePart(int partId, int projectId, String newTitle, double length, double width, double depth) async {
+    await database.update(database.partData).replace(
+      PartDataData(id: partId, projectId: projectId, partName: newTitle, length: length, width: width, depth: depth),
     );
     await _fetchProjectsFromDatabase();
   }
-
-  Future<void> _deleteProject(int projectId) async {
-    await database.delete(database.projectData).delete(
-      ProjectDataData(id: projectId, projectName: ''),
-    );
-    await _fetchProjectsFromDatabase();
+  void _deletePartData() {    //When clicking on delete button
+    setState(() {
+      _newPartNameController.clear();
+      _lengthcontroller.clear();
+      _widthcontroller.clear();
+      _depthcontroller.clear();
+      _showBackButton = false;
+      _showEditButton = false;
+      _showDeleteButton = false;
+      _isTextControllerEditable = true;
+    });
   }
 
   Future<List<PartDataData>> _fetchPartsForProject() async {
@@ -163,6 +211,8 @@ class _CalculatePageState extends State<CalculatePage> {
                           length: part.length.toInt(),
                           width: part.width.toInt(),
                           depth: part.depth.toInt(),
+                          onEditTap: () => _enableEditing(part.partName, part.length.toInt(), part.width.toInt(), part.depth.toInt(), index),
+                          onCardTap: () => _showPartInfo(part.partName, part.length.toInt(), part.width.toInt(), part.depth.toInt(), index),
                         );
                       },
                     ),  
@@ -182,7 +232,9 @@ class _CalculatePageState extends State<CalculatePage> {
                     decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Osan Nimi',
-                    )
+                    ),
+                    readOnly: !_isTextControllerEditable,
+                    style: TextStyle(color: _isTextControllerEditable ? Colors.black : Colors.grey),
                   )
                 ),
                 SizedBox(height: 20),
@@ -193,7 +245,9 @@ class _CalculatePageState extends State<CalculatePage> {
                     decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Pituus cm',
-                    )
+                    ),
+                    readOnly: !_isTextControllerEditable,
+                    style: TextStyle(color: _isTextControllerEditable ? Colors.black : Colors.grey),
                   )
                 ),
                 SizedBox(height: 20),
@@ -204,7 +258,9 @@ class _CalculatePageState extends State<CalculatePage> {
                     decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Leveys cm',
-                    )
+                    ),
+                    readOnly: !_isTextControllerEditable,
+                    style: TextStyle(color: _isTextControllerEditable ? Colors.black : Colors.grey),
                   )
                 ),
                 SizedBox(height: 20),
@@ -215,7 +271,9 @@ class _CalculatePageState extends State<CalculatePage> {
                     decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Syvyys cm',
-                    )
+                    ),
+                    readOnly: !_isTextControllerEditable,
+                    style: TextStyle(color: _isTextControllerEditable ? Colors.black : Colors.grey),
                   )
                 ),
                 SizedBox(height: 10),
@@ -228,6 +286,54 @@ class _CalculatePageState extends State<CalculatePage> {
                   },
                   child: Text('Laske tilavuus'),
                 ),
+                SizedBox(height: 15),
+                if (_showBackButton) 
+                  ElevatedButton(
+                    onPressed: _backButtonPress,
+                    child: Text('Takaisin'),
+                  ),
+                  if (_showDeleteButton) 
+                  ... [ 
+                    SizedBox(height: 15),
+                    ElevatedButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: Text("Haluatko varmasti poistaa osan?"),
+                              actions: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        await database.deletePartData(partList[_selectedPartIndex!].id);
+                                        _deletePartData();
+                                        await _fetchPartsForProject();
+                                        Navigator.of(context).pop();
+                                      },
+                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                      child: Text("Kyllä", style: TextStyle(color: Colors.white)),
+                                    ),
+                                    SizedBox(width: 20),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text("Ei"),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      child: Text('Poista Osa', style: TextStyle(color: Colors.white)), 
+                    ), 
+                  ],
                 SizedBox(height: 50),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -249,7 +355,7 @@ class _CalculatePageState extends State<CalculatePage> {
                             minimumSize: Size(75, 37),
                             backgroundColor: _isButton1Green ? Colors.green : Colors.blue,  // Update button color
                             ),
-                          child: Text('cm\u00B3'),
+                          child: Text('cm\u00B3', style: TextStyle(color: Colors.white)), 
                         ),
                         SizedBox(height: 5),
                         ElevatedButton(
@@ -265,7 +371,7 @@ class _CalculatePageState extends State<CalculatePage> {
                               minimumSize: Size(75, 37),
                             backgroundColor: _isButton2Green ? Colors.green : Colors.blue,  // Update button color
                             ),
-                            child: Text('m\u00B3'),                          
+                            child: Text('m\u00B3', style: TextStyle(color: Colors.white)),                          
                         ),
                       ],
                     ),
@@ -274,21 +380,29 @@ class _CalculatePageState extends State<CalculatePage> {
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () async {
+
                     if (_newPartNameController.text.isNotEmpty &&
                       _lengthcontroller.text.isNotEmpty &&
                       _widthcontroller.text.isNotEmpty &&
                       _depthcontroller.text.isNotEmpty) {
-
-                      await database.into(database.partData).insert(
-                        PartDataCompanion(
-                          partName: drift.Value(_newPartNameController.text),
-                          length: drift.Value(double.parse(_lengthcontroller.text)),
-                          width: drift.Value(double.parse(_widthcontroller.text)),
-                          depth: drift.Value(double.parse(_depthcontroller.text)),
-                          projectId: drift.Value(projectId ?? 0),
-                        ),
-                      );
-
+                      if (_showEditButton) {
+                        _updatePart(partList[_selectedPartIndex!].id, projectId!, 
+                        _newPartNameController.text, 
+                        double.parse(_lengthcontroller.text), 
+                        double.parse(_widthcontroller.text), 
+                        double.parse(_depthcontroller.text));
+                      }
+                      else {
+                        await database.into(database.partData).insert(
+                          PartDataCompanion(
+                            partName: drift.Value(_newPartNameController.text),
+                            length: drift.Value(double.parse(_lengthcontroller.text)),
+                            width: drift.Value(double.parse(_widthcontroller.text)),
+                            depth: drift.Value(double.parse(_depthcontroller.text)),
+                            projectId: drift.Value(projectId ?? 0),
+                          ),
+                        );
+                      }
                       await _fetchPartsForProject();
                       setState(() {
                         _newPartNameController.clear();
@@ -298,17 +412,26 @@ class _CalculatePageState extends State<CalculatePage> {
                       });
                     }
                   },
-                  child: Text('Lisää Osa'),
+                  child: Text(_showEditButton ? "Muokkaa Osaa" : "Lisää Osa"),
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    List<Part> parts = partList.map((partData) {
+                      return Part(
+                        partName: partData.partName,
+                        length: partData.length.toInt(),
+                        width: partData.width.toInt(),
+                        depth: partData.depth.toInt(),
+                        onEditTap: () {},
+                      );
+                    }).toList();
                     Navigator.push(
                       context,
                       PageRouteBuilder(
                         pageBuilder: (context, animation, secondaryAnimation) => NavigationRailWidget(
                           initialSelectedPage: 2,
-                          selectedParts: widget.parts,
+                          selectedParts: parts,
                           projectName: widget.projectName,
                         ),
                         transitionDuration: Duration.zero,
@@ -353,7 +476,7 @@ class _CalculatePageState extends State<CalculatePage> {
                   ),
                   Text(_unitMeasurementBool
                       ? 'Kokonaismäärä: ${partList.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth)} cm\u00B3'
-                      : 'Kokonaismäärä: ${partList.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth / 1000000)} m\u00B3',
+                      : 'Kokonaismäärä: ${partList.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth / 1000000).toStringAsFixed(3)} m\u00B3',
                       style: TextStyle(fontSize: 25),
                   ),
                 ],

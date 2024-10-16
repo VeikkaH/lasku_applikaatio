@@ -23,7 +23,7 @@ class PrintPage extends StatelessWidget {
 
     final defaultProjectName = projectName.isEmpty ? '' : projectName;
     final fallbackParts = parts.isEmpty
-        ? [Part(partName: '', length: 0, width: 0, depth: 0)]
+        ? [Part(partName: '', length: 0, width: 0, depth: 0, onEditTap: () {},)]
         : parts;
 
     return Scaffold(

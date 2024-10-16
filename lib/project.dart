@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'part.dart';
 
 class Project extends StatelessWidget {
 
   final String projectName;
-  final List<Part> parts;
   final Function(String) onCardTap;
   final Function(String) onEditTap;
 
   Project({
     super.key,
     required this.projectName,
-    required this.parts,
     required this.onCardTap,
     required this.onEditTap,
   });

@@ -49,5 +49,9 @@ class PartData extends Table {
   return await (select(partData)
         ..where((tbl) => tbl.projectId.equals(projectId)))
       .get();
-}
+  }
+  
+  Future<void> deletePartData(int partId) async {
+    await (delete(partData)..where((tbl) => tbl.id.equals(partId))).go();
+  }
 }

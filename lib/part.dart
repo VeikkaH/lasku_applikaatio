@@ -6,13 +6,17 @@ class Part extends StatelessWidget {
   final int length;
   final int width;
   final int depth;
+  final void Function()? onEditTap;
+  final void Function()? onCardTap;
 
   Part({
     super.key,
     required this.partName,
     required this.length,
     required this.width,
-    required this.depth
+    required this.depth,
+    this.onEditTap,
+    this.onCardTap,
   });
 
   @override
@@ -20,8 +24,7 @@ class Part extends StatelessWidget {
     return Card(
       child: InkWell(
         splashColor: Colors.blue.withAlpha(30),
-        onTap: () {
-        },
+        onTap: onCardTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 5.0),
           child: Row(
@@ -39,8 +42,7 @@ class Part extends StatelessWidget {
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () {
-                    },
+                    onTap: onEditTap,
                     borderRadius: BorderRadius.circular(5),
                     splashColor: Colors.blueAccent.withOpacity(0.3),
                     hoverColor: Colors.blue.withOpacity(0.2),

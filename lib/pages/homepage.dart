@@ -65,11 +65,7 @@ class _HomePageState extends State<HomePage> {
     await _fetchProjectsFromDatabase();
   }
 
-  Future<List<PartDataData>> _fetchPartsForProject(int projectId) async {
-    return await database.fetchPartsByProjectId(projectId);
-  }
-
-  void _showProjectInfo(String projectName, int index) {
+  void _showProjectInfo(String projectName, int index) {    //When clicking on project
     setState(() {
       _newProjectNameController.text = projectName;
       _isTextControllerEditable = false;
@@ -80,7 +76,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _enableEditing(String projectName, int index) {
+  void _enableEditing(String projectName, int index) {    //When clicking on edit button on project
     setState(() {
       _newProjectNameController.text = projectName;
       _isTextControllerEditable = true;
@@ -90,7 +86,7 @@ class _HomePageState extends State<HomePage> {
       _showDeleteButton = true;
     });
   }
-  void _deleteProjectData(int projectId) {
+  void _deleteProjectData(int projectId) {    //When clicking on delete button
     setState(() {
       _deleteProject(projectId);
       _newProjectNameController.clear();
@@ -101,7 +97,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _backButtonPress() {
+  void _backButtonPress() {       //When clicking on back button
     setState(() {
       _newProjectNameController.clear();
       _isTextControllerEditable = true;
@@ -135,34 +131,15 @@ class _HomePageState extends State<HomePage> {
                     child: ListView.builder(
                       itemCount: projectList.length,
                       itemBuilder: (context, index) {
-                        return FutureBuilder<List<PartDataData>>(
-                          future: _fetchPartsForProject(projectList[index].id),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return CircularProgressIndicator();
-                            }
-                            if (snapshot.hasError) {
-                              return Text("Error: ${snapshot.error}");
-                            }
-                            
-                            final parts = snapshot.data ?? [];
-                            return Project(
-                              projectName: projectList[index].projectName,
-                              parts: parts.map((part) => Part(
-                                partName: part.partName,
-                                length: part.length.toInt(),
-                                width: part.width.toInt(),
-                                depth: part.depth.toInt(),
-                              )).toList(),
-                              onCardTap: (name) => _showProjectInfo(name, index),
-                              onEditTap: (name) => _enableEditing(name, index),
-                            );
-                          },
+                        return Project(
+                          projectName: projectList[index].projectName,
+                          onCardTap: (name) => _showProjectInfo(name, index),
+                          onEditTap: (name) => _enableEditing(name, index),
                         );
                       },
                     ),
-                  )
-                ),
+                  ),
+                )
               ],
             ),
             

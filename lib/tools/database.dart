@@ -39,19 +39,4 @@ class PartData extends Table {
         return NativeDatabase(File(dbPath));
       });
     }
-
-  Future<List<ProjectDataData>> fetchProjectsFromDatabase() async {
-    final projects = await select(projectData).get();
-    return projects;
-  }
-  
-  Future<List<PartDataData>> fetchPartsByProjectId(int projectId) async {
-  return await (select(partData)
-        ..where((tbl) => tbl.projectId.equals(projectId)))
-      .get();
-  }
-  
-  Future<void> deletePartData(int partId) async {
-    await (delete(partData)..where((tbl) => tbl.id.equals(partId))).go();
-  }
 }

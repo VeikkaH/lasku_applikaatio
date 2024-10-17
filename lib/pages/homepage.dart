@@ -4,6 +4,7 @@ import 'package:lasku_applikaatio/part.dart';
 import 'package:lasku_applikaatio/tools/NavigationRail.dart';
 import 'package:lasku_applikaatio/tools/database.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:lasku_applikaatio/tools/database_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,49 +21,19 @@ class _HomePageState extends State<HomePage> {
   bool _showEditButton = false;
   bool _showDeleteButton = false;
   int? _selectedProjectIndex;
-
+  
+  final DatabaseService db = DatabaseService();
   List<ProjectDataData> projectList = [];
-  late AppDatabase database;
 
   @override
   void initState() {
     super.initState();
-    database = AppDatabase();
-    _initializeDatabase();
-    _fetchProjectsFromDatabase();
+    _updateDatabase();
   }
 
-  Future<void> _initializeDatabase() async {
-    await _fetchProjectsFromDatabase();
-  }
-
-  Future<void> _fetchProjectsFromDatabase() async {
-    final projects = await database.fetchProjectsFromDatabase();
-    setState(() {
-      projectList = projects;
-    });
-  }
-  Future<void> _addProject(String projectName) async {
-    await database.into(database.projectData).insert(
-      ProjectDataCompanion(
-        projectName: drift.Value(projectName),
-      ),
-    );
-    await _fetchProjectsFromDatabase();
-  }
-
-  Future<void> _updateProject(int projectId, String newTitle) async {
-    await database.update(database.projectData).replace(
-      ProjectDataData(id: projectId, projectName: newTitle),
-    );
-    await _fetchProjectsFromDatabase();
-  }
-
-  Future<void> _deleteProject(int projectId) async {
-    await database.delete(database.projectData).delete(
-      ProjectDataData(id: projectId, projectName: ''),
-    );
-    await _fetchProjectsFromDatabase();
+  Future<void> _updateDatabase() async {
+    projectList = await db.fetchProjectsFromDatabase();
+    setState(() {});
   }
 
   void _showProjectInfo(String projectName, int index) {    //When clicking on project
@@ -88,13 +59,14 @@ class _HomePageState extends State<HomePage> {
   }
   void _deleteProjectData(int projectId) {    //When clicking on delete button
     setState(() {
-      _deleteProject(projectId);
+      db.deleteProject(projectId);
       _newProjectNameController.clear();
       _isTextControllerEditable = true;
       _showBackButton = false;
       _showEditButton = false;
       _showDeleteButton = false;
     });
+    _updateDatabase();
   }
 
   void _backButtonPress() {       //When clicking on back button
@@ -178,10 +150,16 @@ class _HomePageState extends State<HomePage> {
                       if (_showEditButton) {
                         if (_selectedProjectIndex != null) {
                           final projectId = projectList[_selectedProjectIndex!].id;
-                          _updateProject(projectId, _newProjectNameController.text);
+                          db.updateProject(projectId, _newProjectNameController.text);
+                          _updateDatabase();
                         } } else {
-                          _addProject(_newProjectNameController.text);
-                          _newProjectNameController.clear();
+                          setState (() {
+                            db.addProject(ProjectDataCompanion(projectName: drift.Value(_newProjectNameController.text)));
+                            _newProjectNameController.clear();
+                            _updateDatabase();
+                            }
+
+                          );
                         }
                     });
                   },
@@ -230,15 +208,15 @@ class _HomePageState extends State<HomePage> {
                 ElevatedButton(
                   onPressed: () async {
                     final BuildContext localContext = context;
-                    final parts = await (database.select(database.partData)
-                      ..where((part) => part.projectId.equals(projectList[_selectedProjectIndex!].id)))
-                      .get().then((result) => result.map((partData) => 
-                      Part(
+                    List<PartDataData> partList = await db.fetchPartsForProject(projectList[_selectedProjectIndex!].projectName);
+                    List<Part> parts = partList.map((partData) {
+                      return Part(
                       partName: partData.partName,
                       length: partData.length.toInt(),
                       width: partData.width.toInt(),
                       depth: partData.depth.toInt(),
-                      )).toList());
+                    );
+                    }).toList();
 
                     if (mounted) {
                       Navigator.push(

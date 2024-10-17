@@ -48,7 +48,6 @@ class _NavigationRailWidgetState extends State<NavigationRailWidget> {
       }
     });
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,21 +57,25 @@ class _NavigationRailWidgetState extends State<NavigationRailWidget> {
               selectedIndex: _selectedPage,
               groupAlignment: groupAlignment,
               backgroundColor: Color.fromARGB(161, 223, 241, 255),
+              minWidth: 90,
               onDestinationSelected: (int index) {
                   setSelectedPage(index);
                 },
               destinations: [
                 NavigationRailDestination(
-                  icon: Icon(Icons.home),
+                  icon: Icon(Icons.home, size: 40),
                   label: Text('Koti'),
+                  padding: EdgeInsets.symmetric(vertical: 20),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.calculate),
+                  icon: Icon(Icons.calculate, size: 35),
                   label: Text('Laske'),
+                  padding: EdgeInsets.symmetric(vertical: 35),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.print),
+                  icon: Icon(Icons.print, size: 40),
                   label: Text('Tulosta'),
+                  padding: EdgeInsets.symmetric(vertical: 35),
                 ),
               ],
             ),

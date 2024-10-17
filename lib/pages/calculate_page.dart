@@ -3,6 +3,7 @@ import 'package:lasku_applikaatio/tools/NavigationRail.dart';
 import 'package:lasku_applikaatio/part.dart';
 import 'package:lasku_applikaatio/tools/database.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:lasku_applikaatio/tools/database_service.dart';
 
 class CalculatePage extends StatefulWidget {
   final String projectName;
@@ -22,23 +23,48 @@ class _CalculatePageState extends State<CalculatePage> {
   final _lengthcontroller = TextEditingController();
   final _widthcontroller = TextEditingController();
   final _depthcontroller = TextEditingController();
-  int? _selectedPartIndex;
   
   String _product = '';
   String _unit = '';
-  bool _unitMeasurementBool = true;  //true = cm, false = m;
+  bool _unitMeasurementBool = false;  //true = cm, false = m;
 
-  bool _isButton1Green = true;
-  bool _isButton2Green = false;
+  bool _isButton1Green = false;
+  bool _isButton2Green = true;
   bool _showEditButton = false;
   bool _showDeleteButton = false;
   bool _showBackButton = false;
   bool _isTextControllerEditable = true;
 
-  late AppDatabase database;
-  List<ProjectDataData> projectList = [];
+  final DatabaseService db = DatabaseService();
   List<PartDataData> partList = [];
   int? projectId;
+  int? _selectedPartIndex;
+  
+  @override
+  void initState() {
+    super.initState();
+    _updateDatabase();
+    projectId = partList.isNotEmpty ? partList.first.projectId : null;  
+  }
+
+  Future<void> _updateDatabase() async {
+    partList = await db.fetchPartsForProject(widget.projectName);
+    setState(() {});
+  }
+
+  void _deletePartData() {    //When clicking on delete button
+    setState(() {
+      _newPartNameController.clear();
+      _lengthcontroller.clear();
+      _widthcontroller.clear();
+      _depthcontroller.clear();
+      _showBackButton = false;
+      _showEditButton = false;
+      _showDeleteButton = false;
+      _isTextControllerEditable = true;
+    });
+    _updateDatabase();
+  }
 
   void _toggleButton1() {
     setState(() {
@@ -76,20 +102,20 @@ class _CalculatePageState extends State<CalculatePage> {
     if (_lengthcontroller.text.isNotEmpty &&
         _widthcontroller.text.isNotEmpty &&
         _depthcontroller.text.isNotEmpty) {
-      double product = double.parse(_lengthcontroller.text) *
-          double.parse(_widthcontroller.text) *
-          double.parse(_depthcontroller.text);
+          double product =  double.parse(_lengthcontroller.text) *
+                            double.parse(_widthcontroller.text) *
+                            double.parse(_depthcontroller.text);
 
-    if (_unitMeasurementBool == false) {
-        product = product / 1000000;
-      }
-      setState(() {
-        _product = '$product';
-      });
+    if (_unitMeasurementBool == true) {
+        product = product * 1000000;
+    }
+    setState(() {
+      _product = '$product';
+    });
     }
   }
 
-  void _backButtonPress() {       //When clicking on back button
+  void _backButtonPress() {
     setState(() {
       _newPartNameController.clear();
       _lengthcontroller.clear();
@@ -101,7 +127,8 @@ class _CalculatePageState extends State<CalculatePage> {
       _isTextControllerEditable = true;
     });
   }
-  void _showPartInfo(String projectName, int length, int width, int depth, int index) {    //When clicking on edit button on project
+
+  void _showPartInfo(String projectName, int length, int width, int depth, int index) {    //When clicking on card in list
     setState(() {
       _newPartNameController.text = projectName;
       _lengthcontroller.text = length.toString();
@@ -113,72 +140,6 @@ class _CalculatePageState extends State<CalculatePage> {
       _showBackButton = true;
       _isTextControllerEditable = false;
     });
-  }
-  @override
-  
-  void initState() {
-    super.initState();
-    database = AppDatabase();
-    _initializeDatabase();
-  }
-
-  Future<void> _initializeDatabase() async {
-    await _fetchProjectsFromDatabase();
-    await _fetchPartsForProject();
-  }
-
-  Future<void> _fetchProjectsFromDatabase() async {
-    final projects = await database.fetchProjectsFromDatabase();
-    setState(() {
-      projectList = projects;
-    });
-  }
-  Future<void> _updatePart(int partId, int projectId, String newTitle, double length, double width, double depth) async {
-    await database.update(database.partData).replace(
-      PartDataData(id: partId, projectId: projectId, partName: newTitle, length: length, width: width, depth: depth),
-    );
-    await _fetchProjectsFromDatabase();
-  }
-  void _deletePartData() {    //When clicking on delete button
-    setState(() {
-      _newPartNameController.clear();
-      _lengthcontroller.clear();
-      _widthcontroller.clear();
-      _depthcontroller.clear();
-      _showBackButton = false;
-      _showEditButton = false;
-      _showDeleteButton = false;
-      _isTextControllerEditable = true;
-    });
-  }
-
-  Future<List<PartDataData>> _fetchPartsForProject() async {
-    try {
-    final project = projectList.firstWhere(
-      (project) => project.projectName == widget.projectName,
-      orElse: () {
-        throw Exception('Project not found');
-      },
-    );
-    projectId = project.id;
-    if (projectId == null) {
-      print('Error: projectId is null');
-      return [];
-    }
-
-    final fetchedParts = await database.fetchPartsByProjectId(projectId!);
-    setState(() {
-      partList = fetchedParts;
-    });
-    return fetchedParts;  //Ensure no null return
-
-  } catch (e) {
-    print('Error: $e');
-    setState(() {
-      partList = [];
-    });
-    return [];
-  }
   }
 
   @override
@@ -244,7 +205,7 @@ class _CalculatePageState extends State<CalculatePage> {
                     controller: _lengthcontroller,
                     decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'Pituus cm',
+                    labelText: 'Pituus m',
                     ),
                     readOnly: !_isTextControllerEditable,
                     style: TextStyle(color: _isTextControllerEditable ? Colors.black : Colors.grey),
@@ -257,7 +218,7 @@ class _CalculatePageState extends State<CalculatePage> {
                     controller: _widthcontroller,
                     decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'Leveys cm',
+                    labelText: 'Leveys m',
                     ),
                     readOnly: !_isTextControllerEditable,
                     style: TextStyle(color: _isTextControllerEditable ? Colors.black : Colors.grey),
@@ -270,7 +231,7 @@ class _CalculatePageState extends State<CalculatePage> {
                     controller: _depthcontroller,
                     decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'Syvyys cm',
+                    labelText: 'Syvyys m',
                     ),
                     readOnly: !_isTextControllerEditable,
                     style: TextStyle(color: _isTextControllerEditable ? Colors.black : Colors.grey),
@@ -280,7 +241,7 @@ class _CalculatePageState extends State<CalculatePage> {
                 ElevatedButton(
                   onPressed: () {
                     if (_unit == '') {
-                      _unit = 'cm\u00B3';
+                      _unit = 'm\u00B3';
                     }
                     calculateProduct();
                   },
@@ -308,9 +269,8 @@ class _CalculatePageState extends State<CalculatePage> {
                                   children: [
                                     ElevatedButton(
                                       onPressed: () async {
-                                        await database.deletePartData(partList[_selectedPartIndex!].id);
+                                        await db.deletePartData(partList[_selectedPartIndex!].id);
                                         _deletePartData();
-                                        await _fetchPartsForProject();
                                         Navigator.of(context).pop();
                                       },
                                       style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -353,8 +313,8 @@ class _CalculatePageState extends State<CalculatePage> {
                           },
                           style: ElevatedButton.styleFrom(
                             minimumSize: Size(75, 37),
-                            backgroundColor: _isButton1Green ? Colors.green : Colors.blue,  // Update button color
-                            ),
+                            backgroundColor: _isButton1Green ? Colors.green : Colors.grey,
+                          ),
                           child: Text('cm\u00B3', style: TextStyle(color: Colors.white)), 
                         ),
                         SizedBox(height: 5),
@@ -369,7 +329,7 @@ class _CalculatePageState extends State<CalculatePage> {
                             },
                             style: ElevatedButton.styleFrom(
                               minimumSize: Size(75, 37),
-                            backgroundColor: _isButton2Green ? Colors.green : Colors.blue,  // Update button color
+                              backgroundColor: _isButton2Green ? Colors.green : Colors.grey,
                             ),
                             child: Text('m\u00B3', style: TextStyle(color: Colors.white)),                          
                         ),
@@ -386,14 +346,15 @@ class _CalculatePageState extends State<CalculatePage> {
                       _widthcontroller.text.isNotEmpty &&
                       _depthcontroller.text.isNotEmpty) {
                       if (_showEditButton) {
-                        _updatePart(partList[_selectedPartIndex!].id, projectId!, 
-                        _newPartNameController.text, 
-                        double.parse(_lengthcontroller.text), 
-                        double.parse(_widthcontroller.text), 
-                        double.parse(_depthcontroller.text));
+                          await db.updatePart(partList[_selectedPartIndex!].id, projectId!, 
+                          _newPartNameController.text, 
+                          double.parse(_lengthcontroller.text), 
+                          double.parse(_widthcontroller.text), 
+                          double.parse(_depthcontroller.text));
+                          _updateDatabase();
                       }
                       else {
-                        await database.into(database.partData).insert(
+                        await db.insertPartData(
                           PartDataCompanion(
                             partName: drift.Value(_newPartNameController.text),
                             length: drift.Value(double.parse(_lengthcontroller.text)),
@@ -402,14 +363,9 @@ class _CalculatePageState extends State<CalculatePage> {
                             projectId: drift.Value(projectId ?? 0),
                           ),
                         );
+                        _updateDatabase();
                       }
-                      await _fetchPartsForProject();
-                      setState(() {
-                        _newPartNameController.clear();
-                        _lengthcontroller.clear();
-                        _widthcontroller.clear();
-                        _depthcontroller.clear();
-                      });
+                      _backButtonPress();
                     }
                   },
                   child: Text(_showEditButton ? "Muokkaa Osaa" : "Lisää Osa"),
@@ -423,7 +379,6 @@ class _CalculatePageState extends State<CalculatePage> {
                         length: partData.length.toInt(),
                         width: partData.width.toInt(),
                         depth: partData.depth.toInt(),
-                        onEditTap: () {},
                       );
                     }).toList();
                     Navigator.push(
@@ -475,8 +430,8 @@ class _CalculatePageState extends State<CalculatePage> {
                     ),
                   ),
                   Text(_unitMeasurementBool
-                      ? 'Kokonaismäärä: ${partList.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth)} cm\u00B3'
-                      : 'Kokonaismäärä: ${partList.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth / 1000000).toStringAsFixed(3)} m\u00B3',
+                      ? 'Kokonaismäärä: ${partList.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth * 1000000)} cm\u00B3'
+                      : 'Kokonaismäärä: ${partList.fold<double>(0.0, (prev, part) => prev + part.length * part.width * part.depth).toStringAsFixed(3)} m\u00B3',
                       style: TextStyle(fontSize: 25),
                   ),
                 ],

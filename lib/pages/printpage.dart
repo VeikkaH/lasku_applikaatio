@@ -56,10 +56,10 @@ class PrintPage extends StatelessWidget {
               pw.TableHelper.fromTextArray(
                 headers: [
                   'Osa',
-                  'Pituus (cm\u00B3)',
-                  'Leveys (cm\u00B3)',
-                  'Syvyys (cm\u00B3)',
-                  'Yhteensä (cm\u00B3)',
+                  'Pituus (m\u00B3)',
+                  'Leveys (m\u00B3)',
+                  'Syvyys (m\u00B3)',
+                  'Yhteensä (m\u00B3)',
                 ],
                 data: parts.map((part) => [
                   part.partName,
@@ -87,7 +87,7 @@ class PrintPage extends StatelessWidget {
                     flex: 4,
                     child: pw.Column(
                       children: [
-                        pw.Text('Poistettava yhteensä: ${parts.map((part) => double.parse(part.length.toString()) * double.parse(part.width.toString()) * double.parse(part.depth.toString())).reduce((a, b) => a + b)} cm\u00B3', 
+                        pw.Text('Poistettava yhteensä: ${parts.map((part) => double.parse(part.length.toString()) * double.parse(part.width.toString()) * double.parse(part.depth.toString())).reduce((a, b) => a + b)} m\u00B3', 
                         style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                       ],
                     )
